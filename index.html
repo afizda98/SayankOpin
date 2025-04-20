@@ -19,6 +19,10 @@
       color: #fff;
     }
 
+    body::-webkit-scrollbar {
+      display: none; /* Chrome, Safari */
+    }
+
     h1 {
       margin-top: 50px;
       font-size: 2.2em;
@@ -152,18 +156,37 @@
   <script>
     window.addEventListener("DOMContentLoaded", () => {
     const bgm = document.getElementById("bgm");
-    const startTime = 19; // ⏱️ ganti sesuai detik awal (misal 1 menit 15 detik = 75)
-    bgm.volume = 0.2; // 💖 volume pelan (0.0 - 1.0)
+    const startTime = 45; // mulai dari detik ke-45
+    const maxVolume = 0.5; // volume maksimal setelah fade-in
+    const fadeDuration = 5000; // durasi fade-in dalam milidetik (5000ms = 5 detik)
 
+    bgm.volume = 0.0;
     bgm.currentTime = startTime;
 
-    // Autoplay workaround for mobile (user interaction)
-    const resumeAudio = () => {
-        bgm.play().catch(() => {});
-        document.removeEventListener('click', resumeAudio);
+    const fadeInVolume = () => {
+      let start = null;
+
+      const fade = (timestamp) => {
+        if (!start) start = timestamp;
+        const progress = timestamp - start;
+        const volume = Math.min(progress / fadeDuration * maxVolume, maxVolume);
+        bgm.volume = volume;
+
+        if (volume < maxVolume) {
+          requestAnimationFrame(fade);
+        }
+      };
+
+      requestAnimationFrame(fade);
     };
+
+    const resumeAudio = () => {
+      bgm.play().then(() => fadeInVolume()).catch(() => {});
+      document.removeEventListener('click', resumeAudio);
+    };
+
     document.addEventListener('click', resumeAudio);
-    });
+  });
 
 
     const messages = [
